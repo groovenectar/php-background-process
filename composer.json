@@ -1,0 +1,17 @@
+{
+    "name": "pbp/php-background-process",
+    "description": "Start and manage processes in the background",
+    "type": "library",
+    "keywords": ["process", "background", "unix"],
+    "license": "MIT",
+    "require": {
+        "php": ">=5.5"
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "psr-4": {
+            "Pbp\\": "src/"
+        }
+    }
+}
