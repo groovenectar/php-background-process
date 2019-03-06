@@ -73,7 +73,7 @@ class BackgroundProcess
 		return round(microtime(true) * 1000) . random_int(100, 999);
 	}
 
-	public static function exec(Command $cmd)
+	public static function exec($cmd)
 	{
 		$id = self::_generateUniqueId();
 
