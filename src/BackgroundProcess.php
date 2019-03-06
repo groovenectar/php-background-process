@@ -36,14 +36,20 @@ class BackgroundProcess
 
 	public function getOutput()
 	{
-		return file_get_contents(
+		$filePath = self::getFilePath($this->id, 'out');
+		return file_exists($filePath) ? file_get_contents(
 			self::getFilePath($this->id, 'out')
-		);
+		) : null;
 	}
 
 	public function grepOutput($regex)
 	{
 		$output = $this->getOutput();
+
+		if (!$output) {
+			return [];
+		}
+
 		preg_match_all($regex, $output, $matches);
 		return $matches;
 	}
