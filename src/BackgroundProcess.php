@@ -99,7 +99,7 @@ class BackgroundProcess
 			]
 		);
 
-		return implode("\n", $cmd->exec(true));
+		return $cmd->exec();
 	}
 
 	public function callback($callback) {

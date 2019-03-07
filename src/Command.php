@@ -27,32 +27,30 @@ class Command
 	}
 
 	/**
-	 * @param bool $returnOutput
-	 * @return bool
+	 * @return string
 	 * @throws Exception
 	 */
-	public function exec($returnOutput = false) {
+	public function exec() {
 		exec($this, $output, $return);
 
 		if ($return !== 0) {
-			throw new Exception('Command failed', (int) $return);
+			throw new Exception('Command ' . self::escapeShellArg($this->cmd) . ' failed', (int) $return);
 		}
 
-		return $returnOutput ? $output : true;
+		return implode("\n", $output);
 	}
 
 	/**
 	 * Like exec(), but uses passthru() to display output as it happens
 	 *
-	 * @param bool $returnOutput
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function stream() {
+	public function passthru() {
 		passthru($this, $return);
 
 		if ($return !== 0) {
-			throw new Exception('Command failed', (int) $return);
+			throw new Exception('Command ' . self::escapeShellArg($this->cmd) . ' failed', (int) $return);
 		}
 
 		return true;
