@@ -41,6 +41,23 @@ class Command
 		return $returnOutput ? $output : true;
 	}
 
+	/**
+	 * Like exec(), but uses passthru() to display output as it happens
+	 *
+	 * @param bool $returnOutput
+	 * @return bool
+	 * @throws Exception
+	 */
+	public function stream() {
+		passthru($this, $return);
+
+		if ($return !== 0) {
+			throw new Exception('Command failed', (int) $return);
+		}
+
+		return true;
+	}
+
 	public function exists() {
 		if (strpos($this->cmd, DIRECTORY_SEPARATOR) !== false) {
 			return file_exists($this->cmd) && is_executable($this->cmd);

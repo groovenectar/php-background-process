@@ -1,6 +1,3 @@
-# Top-most EditorConfig file
-root = true
-
 # Project root / defaults
 [*]
 charset = utf-8

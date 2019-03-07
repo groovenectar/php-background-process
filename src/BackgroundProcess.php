@@ -72,18 +72,48 @@ class BackgroundProcess
 		return $matches;
 	}
 
+	public function tailOutput($lines = 1)
+	{
+		return $this->_headOrTailOutput('tail', $lines);
+	}
+
+	public function headOutput($lines = 1)
+	{
+		return $this->_headOrTailOutput('head', $lines);
+	}
+
+	private function _headOrTailOutput($operation = 'tail', $lines = 1)
+	{
+		$outFilePath = self::getFilePath($this->id, 'out');
+
+		if (!file_exists($outFilePath)) {
+			return null;
+		}
+
+		$cmd = new Command(
+			$operation,
+			[
+				'-n',
+				intval($lines),
+				$outFilePath
+			]
+		);
+
+		return implode("\n", $cmd->exec(true));
+	}
+
 	public function callback($callback) {
 		return $callback($this);
 	}
 
 	public function cleanUp()
 	{
-		$pid = self::getFilePath($this->id, 'pid');
-		$out = self::getFilePath($this->id, 'out');
+		$pidFilePath = self::getFilePath($this->id, 'pid');
+		$outFilePath = self::getFilePath($this->id, 'out');
 
-		if (file_exists($pid)) {
-			unlink($pid);
-			unlink($out);
+		if (file_exists($pidFilePath)) {
+			unlink($pidFilePath);
+			unlink($outFilePath);
 			return true;
 		}
 
