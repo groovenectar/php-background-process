@@ -2,6 +2,8 @@
 
 namespace Pbp;
 
+use \Exception;
+
 class BackgroundProcess
 {
 	protected $id;
@@ -14,9 +16,19 @@ class BackgroundProcess
 
 	public function isRunning()
 	{
-		$pid = $this->getPid();
-		exec("test -e /proc/$pid", $out, $ret);
-		return !$ret;
+		try {
+			$pid = $this->getPid();
+			$command = new Command(
+				'test',
+				[
+					'-e',
+					"/proc/$pid"
+				]
+			);
+			return $command->exec();
+		} catch (Exception $e) {
+			return false;
+		}
 	}
 
 	public function getId()
@@ -24,22 +36,28 @@ class BackgroundProcess
 		return $this->id;
 	}
 
+	/**
+	 * @return false|string|null
+	 * @throws Exception
+	 */
 	public function getPid()
 	{
 		if (!$this->pid) {
-			$this->pid = file_get_contents(
-				self::getFilePath($this->id, 'pid')
-			);
+			$pid = self::getFileContents($this->id, 'pid');
+
+			if (is_null($pid)) {
+				throw new Exception('Could not find process');
+			}
+
+			$this->pid = $pid;
 		}
+
 		return $this->pid;
 	}
 
 	public function getOutput()
 	{
-		$filePath = self::getFilePath($this->id, 'out');
-		return file_exists($filePath) ? file_get_contents(
-			self::getFilePath($this->id, 'out')
-		) : null;
+		return self::getFileContents($this->id, 'out');
 	}
 
 	public function grepOutput($regex)
@@ -54,7 +72,7 @@ class BackgroundProcess
 		return $matches;
 	}
 
-	public function getProgress($callback) {
+	public function callback($callback) {
 		return $callback($this);
 	}
 
@@ -62,12 +80,19 @@ class BackgroundProcess
 	{
 		$pid = self::getFilePath($this->id, 'pid');
 		$out = self::getFilePath($this->id, 'out');
+
 		if (file_exists($pid)) {
 			unlink($pid);
 			unlink($out);
 			return true;
 		}
+
 		return false;
+	}
+
+	private static function getFileContents($id, $ext) {
+		$filePath = self::getFilePath($id, $ext);
+		return file_exists($filePath) ? file_get_contents($filePath) : null;
 	}
 
 	private static function getFilePath($id, $ext)
@@ -79,21 +104,26 @@ class BackgroundProcess
 		return round(microtime(true) * 1000) . random_int(100, 999);
 	}
 
-	public static function exec($cmd)
+	/**
+	 * @param Command $cmd
+	 * @return BackgroundProcess
+	 * @throws Exception
+	 */
+	public static function exec(Command $cmd)
 	{
 		$id = self::_generateUniqueId();
 
-		$out = self::getFilePath($id, 'out');
-		$pid = self::getFilePath($id, 'pid');
+		$outFilePath = self::getFilePath($id, 'out');
+		$pidFilePath = self::getFilePath($id, 'pid');
 
-		$execStr = 'nohup ' . $cmd . ' > ' . $out . ' 2>&1 & echo $!';
-		exec($execStr, $output, $ret);
+		$execStr = 'nohup ' . $cmd->__toString() . ' > ' . Command::escapeShellArg($outFilePath) . ' 2>&1 & echo $!';
+		exec($execStr, $output, $return);
 
-		if ($ret) {
-			throw new Exception('Background process failed', (int) $ret);
+		if ($return) {
+			throw new Exception('Background process failed', (int) $return);
 		}
 
-		file_put_contents($pid, $output[0]);
+		file_put_contents($pidFilePath, $output[0]);
 
 		return new self($id);
 	}

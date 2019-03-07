@@ -2,8 +2,15 @@
 
 namespace Pbp;
 
+use \Exception;
+
 require __DIR__ . '/vendor/autoload.php';
 
+/**
+ * @param $cond
+ * @param string $msg
+ * @throws Exception
+ */
 function expect($cond, $msg = '') {
 	if (!$cond) {
 		echo "✖️  $msg\n\n";
@@ -14,6 +21,9 @@ function expect($cond, $msg = '') {
 }
 
 $command = new Command('sh', ['-c', 'sleep 1; echo -n done']);
+
+expect($command->exists(), 'command exists');
+
 $bp = BackgroundProcess::exec($command);
 
 expect($bp->getId(), 'it has an ID: ' . $bp->getId());
