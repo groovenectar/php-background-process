@@ -25,7 +25,8 @@ class BackgroundProcess
 					"/proc/$pid"
 				]
 			);
-			return $command->exec();
+			$command->exec();
+			return true;
 		} catch (Exception $e) {
 			return false;
 		}
